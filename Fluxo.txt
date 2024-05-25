@@ -1,0 +1,7 @@
+1) Fazer conexão com whatsapp:
+Nome, cpf, segredo
+2) Confirmar se já existe no banco ou não
+3) Se já existe -> Fluxo
+   Não existe -> Criar usuário -> Fluxo
+4) Se já existe usuário -> rever segredo e imprimir.
+   Não existe usuário -> Como foi sua semana?
