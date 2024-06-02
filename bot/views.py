@@ -36,7 +36,8 @@ def twilio_webhook(request):
 
         # Caso login recente
         if login_time(user):
-            gpt_response = get_gpt_response(body)
+            last_chat = get_last_chat(from_number)
+            gpt_response = get_gpt_response(body, last_chat)
             send_message(from_number, gpt_response)
             Chats.insert_one({
                 "user": user['name'],
@@ -63,7 +64,8 @@ def twilio_webhook(request):
                     send_message(from_number, "Não foi possível compreender. Por favor, siga as instruções.")
                     first_message(from_number)
             except Exception as e:
-                send_message(from_number, f"Erro ao processar cadastro: {str(e)}")
+                send_message(from_number, f"Erro ao processar cadastro. Tente novamente!")
+                first_message(from_number)
         # Caso tenha cadastro
         else:
             try:  # Fazer Login
@@ -72,15 +74,7 @@ def twilio_webhook(request):
                     data[key.strip().lower()] = value.strip()
                 if 'cpf' in data and 'password' in data:
                     if login(data['cpf'], data['password']):
-                        gpt_response = get_gpt_response(body)
-                        send_message(from_number, gpt_response)
-                        Chats.insert_one({
-                            "user": user['name'],
-                            "phone_user": from_number,
-                            "body": body+'|'+gpt_response,
-                            "message_id": request.POST.get('SmsMessageSid'),
-                            "timestamp": datetime.now(),
-                        })
+                        send_message(from_number, "Login feito com sucesso! Me fale como estamos agora e vamos avançando nas metas!")
                         return HttpResponse(f"Mensagem salva", status=200)
                     else:
                         send_message(from_number, "CPF ou senha incorretos. Por favor, tente novamente.")
@@ -91,19 +85,20 @@ def twilio_webhook(request):
             except Exception as e:
                 send_message(from_number, "Erro ao processar login, por favor tente novamente:")
                 first_message(from_number)
-                print(e)
+                # print(e)
 
     return HttpResponse("Quebra Twilio Webhook", status=405)
 
 
 # GPT request
-def get_gpt_response(context):
+def get_gpt_response(context, chat_passado=''):
     client = OpenAI(api_key=config('OPENAI_API_KEY'))
     prompt = f'''
-    Você é um assistente pessoal altamente qualificado para fornecer orientação e conselhos práticos para o crescimento pessoal. A pessoa que você está ajudando está passando por {context}.
-    Com base no que foi compartilhado, você deve oferecer conselhos úteis e incentivadores para ajudá-la a enfrentar desafios, superar obstáculos e alcançar seus objetivos. Lembre-se de ser empático, motivador e direto em suas sugestões.
-    Seu conselho deve ser prático, acionável e personalizado para a situação específica. Concentre-se em fornecer soluções realistas e estratégias que possam ser implementadas imediatamente para promover o crescimento pessoal e o desenvolvimento contínuo.
-    O resumo do conselho deve ser claro, conciso e inspirador, com um máximo de 300 caracteres. Utilize uma linguagem acessível e positiva para transmitir suas mensagens de apoio e encorajamento.
+    Você é um psicólogo altamente qualificado para fornecer orientação e conselhos práticos para o crescimento pessoal através de um pequeno to-do list.
+    A pessoa que você está ajudando está passando por {context}. A pessoa pode já ter tido essa interação {chat_passado}; não levar em consideração caso não tiver preenchido.
+    Com base no que foi compartilhado, você deve oferecer um breve to-do list com conselhos úteis e incentivadores para ajudá-la a enfrentar desafios. Lembre-se de ser empático, motivador e direto em suas sugestões sem ser robótico.
+    Fornecer soluções realistas e estratégias que possam ser implementadas imediatamente para promover o crescimento pessoal.
+    O resumo deve ter um máximo de 300 caracteres. Utilize uma linguagem acessível e positiva para transmitir suas mensagens de apoio e encorajamento.
     '''
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -147,35 +142,34 @@ def date_update(user):
 
 def first_message(phone_user):
     message = (
-        "Olá, faça seu login como o exemplo!\nCPF:12312312322\nPASSWORD:121212\n\nSenão possuir cadastro, envie: NÂO POSSUO CADASTRO\nNAME:\nCPF:\nPASSWORD:\nNUMBER_PHONE:")
+        "Olá, faça seu login como o exemplo!\nCPF:12312312322\nPASSWORD:121212\n\nSenão possuir cadastro, envie: NÃO POSSUO CADASTRO\nNAME:\nCPF:\nPASSWORD:\nNUMBER_PHONE:")
     send_message(phone_user, message)
+
+
+# Get last chat of user
+def get_last_chat(phone_user):
+    last_chat = Chats.find_one({'phone_user': phone_user}, sort=[('timestamp', -1)])
+    if last_chat:
+        return last_chat['body']
+    return ''
 
 
 ########## Mains Functions ##########
 # Add user
 @csrf_exempt
-def add_user(request=None, data=None):
-    if request is not None:
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except json.JSONDecodeError as e:
-            return JsonResponse({"error": f"Erro ao decodificar JSON: {str(e)}"}, status=400)
-
-    if data is not None:
-        try:
-            user = {
-                "name": data['name'].strip(),
-                "cpf": data['cpf'].strip(),
-                "password": data['password'].strip(),
-                "number_phone": data['number_phone'].strip(),
-                "login": datetime.now(),
-            }
-            Users.insert_one(user)
-            return JsonResponse({"success": f"Sucesso ao salvar {data['name']}", "data": data}, status=200)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "Invalid request method or missing data"}, status=400)
+def add_user(data):
+    try:
+        user = {
+            "name": data['name'].strip(),
+            "cpf": data['cpf'].strip(),
+            "password": data['password'].strip(),
+            "number_phone": data['number_phone'].strip(),
+            "login": datetime.now(),
+        }
+        Users.insert_one(user)
+        return JsonResponse({"success": f"Sucesso ao salvar {data['name']}", "data": data}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # Login
