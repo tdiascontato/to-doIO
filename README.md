@@ -1,8 +1,8 @@
-## Projeto Django - Assistente Motivacional via WhatsApp e GPT
+## Projeto Django - Assistence To-Do via WhatsApp e GPT
 
 ### Visão Geral
 
-Este projeto é uma aplicação Django que serve como um assistente pessoal motivacional, integrando o WhatsApp e o GPT-3.5 da OpenAI. O objetivo é fornecer orientação e conselhos práticos para o crescimento pessoal dos usuários. A aplicação permite que os usuários se registrem e façam login via WhatsApp, e depois interajam com o sistema para receber conselhos personalizados.
+Este projeto é uma aplicação base em Django que serviria para um acompanhamento completo e se encontra como um assistente pessoal motivacional através de To-Do lists, integrando o WhatsApp e o GPT-3.5 da OpenAI. O objetivo é fornecer orientação e conselhos práticos para o crescimento pessoal dos usuários. A aplicação permite que os usuários se registrem e façam login via WhatsApp, e depois interajam com o sistema para receber conselhos personalizados. A aplicação não está com Clean Code mas pode ser ajustado facilmente, apenas tirando os projetos do papel e fazendo a base. 
 
 ### Funcionalidades
 
@@ -15,7 +15,8 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 
 3. **Integração com GPT-3.5**
    - Recebe contexto e perguntas dos usuários via WhatsApp.
-   - Utiliza o modelo GPT-3.5 para gerar respostas motivacionais e conselhos práticos personalizados.
+   - Utiliza o modelo GPT-3.5 para gerar respostas motivacionais através de to-do lists práticas.
+   - Utiliza de conversas anteriores para personalizar a interação.
 
 4. **Armazenamento de Conversas**
    - Salva todas as interações entre os usuários e o sistema no banco de dados para referência futura.
@@ -40,11 +41,7 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 
 2. Crie um ambiente virtual e instale as dependências:
 
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # No Windows use `venv\Scripts\activate`
-    pip install -r requirements.txt
-    ```
+- Utilização do pipFile para ajudar :)
 
 3. Configure as variáveis de ambiente. Crie um arquivo `.env` na raiz do projeto e adicione as seguintes linhas:
 
@@ -71,6 +68,8 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 
 ```plaintext
 ├── bot
+|   ├── migrations
+|      ├── __init.py
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
@@ -79,13 +78,14 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 │   ├── views.py
 │   └── urls.py
 ├── manage.py
+├── db_connection.py
 ├── Personal_Development
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
-└── requirements.txt
+└── Pipfile
 ```
 
 ### Detalhes das Funcionalidades
@@ -110,7 +110,7 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 - **Descrição**: Utiliza o modelo GPT-3.5 da OpenAI para gerar respostas motivacionais e conselhos práticos personalizados.
 - **Exemplo de Uso**:
   1. O usuário envia uma mensagem descrevendo sua situação atual ou pedindo conselhos.
-  2. O sistema envia o contexto para o GPT-3.5 e recebe uma resposta personalizada.
+  2. O sistema envia o contexto para o GPT-3.5 e recebe uma resposta personalizada, pegando, caso tenha, conversas passadas para ter um maior contexto
   3. A resposta é enviada de volta ao usuário via WhatsApp.
 
 #### Armazenamento de Conversas
@@ -118,3 +118,4 @@ Este projeto é uma aplicação Django que serve como um assistente pessoal moti
 - **Descrição**: Salva todas as interações entre os usuários e o sistema no banco de dados para referência futura.
 - **Implementação**:
   - Utiliza o modelo `Chats` para armazenar mensagens trocadas, juntamente com o número de telefone do usuário, o corpo da mensagem, o ID da mensagem e o timestamp.
+- DB - MongoDB 
