@@ -1,7 +1,45 @@
-1) Fazer conexão com whatsapp:
-Nome, cpf, segredo
-2) Confirmar se já existe no banco ou não
-3) Se já existe -> Fluxo
-   Não existe -> Criar usuário -> Fluxo
-4) Se já existe usuário -> rever segredo e imprimir.
-   Não existe usuário -> Como foi sua semana?
+[Fazer função Primeira Mensagem)]
+> Olá, escreva de acordo! 
+    CPF:
+    PASSWORD:
+
+    Senão possuir..: 
+    NÂO POSSUO CADASTRO
+    NAME:
+    CPF:
+    PASSWORD:
+    NUMBER_PHONE:
+
+  [twilio_webhook]
+> Limpar Body recebido para receber receber CPF, PASSWORD ou NÂO POSSUO CADASTRO.
+	> Se não constar nenhuma das 3 opções -> send_message "Não foi possível compreender a opção" -> Primeira Mensagem novamente.
+	
+
+> Login = False ?  
+	> Não possui user ?
+	 	> add_user
+		> Login = True
+		> (primeira mensagem)
+		> Salvar Login = True & Mensagem no banco
+
+	> Possui user ?
+		> Login = True
+		> Possui Memory?
+   			> send_message "Como estamos com {Mensagem já salva da Integração GPT}?"
+   			> Salvar Login = True & Mensagem no banco
+
+		 > Não pussi Memory?
+			  > send_message "Me conte sobre o que está pensando".
+> Login = True ?
+	> Login = True
+	> send_message "Como estamos com {Mensagem já salva da Integração GPT}?"
+   	> Salvar Login = True & Mensagem no banco
+
+
+(Integração GPT)
+ > Pegar Body e mandar para GPT.
+ > Copy: "Você é um psicólogo altamente qualificado para lidar com depressão e conflitos pessoais e organizacionais. A pessoa a ser ajudada já teve esse passado {Memory}. Você deverá retornar com um resumo do contexto da pessoa e fazer uma pequena observação para resolução de algum eventual problema citado utilizando de empatia e pedagogias praxes do estilo Paulo Freire com influências de Karl Marx incentivando o progresso pessoal. O resumo deve ter no máximo 300 caracteres e ser entregue em linguagem não muito formal."
+ > Se for enviado {conteudo} para a função: Copy unshift "{conteudo}"
+ > Pegar response e send_message
+
+* Login deverá ser uma chave boolean em Users que deverá mudar para False depois de 2h depois da úlima atualização dela.

@@ -9,7 +9,8 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] #Ngrok
+# APPEND_SLASH = False
 
 # Application definition
 
